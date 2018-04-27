@@ -30,8 +30,7 @@ class plsListener(ParseTreeListener):
             print(x[0].replace("./", ""))
 
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
-        """no funciona"""
-        os.rename("Databases/"+oie+"/"+ctx.table_name().getText(),"Databases/"+oie+"/"+ctx.new_table_name().getText())
+        os.rename(ctx.table_name().getText(),ctx.new_table_name().getText())
 
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
         os.rename("Databases/" + ctx.database_name().getText(), "Databases/" + ctx.new_database_name().getText())
@@ -41,8 +40,8 @@ class plsListener(ParseTreeListener):
         global oie
         oie = ctx.database_name().getText()
 
-    def enterDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
-        shutil.rmtree("Databases/"+oie+"/"+ctx.table_name().getText())
+    def exitDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
+        shutil.rmtree(ctx.table_name().getText())
 
 
 
