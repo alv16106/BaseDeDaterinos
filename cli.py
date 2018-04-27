@@ -18,12 +18,20 @@ class plsListener(ParseTreeListener):
         for x in os.walk("Databases/"):
             print(x[0].replace("Databases/", ""))
 
+    def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
+        shutil.rmtree("Databases/"+ctx.database_name().getText())
+
+
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         os.makedirs(ctx.table_name().getText())
 
     def exitShow_tables_stmt(self, ctx:sqlParser.Show_tables_stmtContext):
         for x in os.walk("."):
             print(x[0].replace("./", ""))
+
+    def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
+        """no funciona"""
+        os.rename("Databases/"+oie+"/"+ctx.table_name().getText(),"Databases/"+oie+"/"+ctx.new_table_name().getText())
 
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
         os.rename("Databases/" + ctx.database_name().getText(), "Databases/" + ctx.new_database_name().getText())
@@ -32,6 +40,11 @@ class plsListener(ParseTreeListener):
         os.chdir("Databases/" + ctx.database_name().getText())
         global oie
         oie = ctx.database_name().getText()
+
+    def enterDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
+        shutil.rmtree("Databases/"+oie+"/"+ctx.table_name().getText())
+
+
 
 class ParserException(Exception):
     def __init__(self, value):
