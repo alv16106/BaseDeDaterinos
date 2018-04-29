@@ -7,38 +7,73 @@ from sqlLexer import sqlLexer
 from sqlParser import sqlParser
 from sqlListener import sqlListener
 from antlr4.error.ErrorListener import ErrorListener
-oie = " "
+bdActual = " "
+bdne = "La base de datos que esta tratando de accesar no existe"
+ingresePls = "Ingrese a una base de datos primero"
 
 class plsListener(ParseTreeListener):
+
     def exitCreate_database_stmt(self, ctx:sqlParser.Create_database_stmtContext):
         os.makedirs("Databases/" + ctx.database_name().getText())
 
 
     def exitShow_databases_stmt(self, ctx:sqlParser.Show_databases_stmtContext):
-        for x in os.walk("Databases/"):
-            print(x[0].replace("Databases/", ""))
+        if bdActual != " ":
+            for x in os.walk("../"):
+                print(x[0].replace("../", ""))
+        else:
+            for x in os.walk("Databases/"):
+                print(x[0].replace("Databases/", ""))
 
     def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
-        shutil.rmtree("Databases/"+ctx.database_name().getText())
+        try:
+            if bdActual != " ":
+                shutil.rmtree("../../Databases/"+ctx.database_name().getText())
+            else:
+                shutil.rmtree("Databases/"+ctx.database_name().getText())
+        except Exception as e:
+            print (bdne)
 
 
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         os.makedirs(ctx.table_name().getText())
 
     def exitShow_tables_stmt(self, ctx:sqlParser.Show_tables_stmtContext):
-        for x in os.walk("."):
-            print(x[0].replace("./", ""))
+        if bdActual != " ":
+            for x in os.walk("."):
+                print(x[0].replace("./", ""))
+        else:
+            print (ingresePls)
 
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
-        os.rename(ctx.table_name().getText(),ctx.new_table_name().getText())
+        if bdActual != " ":
+            os.rename(ctx.table_name().getText(),ctx.new_table_name().getText())
+        else:
+            print (ingresePls)
 
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
-        os.rename("Databases/" + ctx.database_name().getText(), "Databases/" + ctx.new_database_name().getText())
+        global bdActual
+        try:
+            if bdActual == " ":
+                os.rename("Databases/" + ctx.database_name().getText(), "Databases/" + ctx.new_database_name().getText())
+            else:
+                os.chdir(os.path.dirname(os.getcwd()))
+                os.rename(ctx.database_name().getText(), ctx.new_database_name().getText())
+        except Exception as e:
+            print (bdne)
 
     def exitUse_database_stmt(self, ctx:sqlParser.Use_database_stmtContext):
-        os.chdir("Databases/" + ctx.database_name().getText())
-        global oie
-        oie = ctx.database_name().getText()
+        global bdActual
+        try:
+            if bdActual == " ":
+                os.chdir("Databases/" + ctx.database_name().getText())
+            else:
+                os.chdir(os.path.dirname(os.getcwd()))
+                os.chdir(ctx.database_name().getText())
+            bdActual = ctx.database_name().getText()
+        except Exception as e:
+            print (bdne)
+
 
     def exitDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
         shutil.rmtree(ctx.table_name().getText())
@@ -81,7 +116,7 @@ Las construcciones validas para esta gramatica son todas aquellas
 def main(argv):
     while True:
         try:
-            text = input(oie + "> ")
+            text = input(bdActual + "> ")
 
             if (text == 'exit'):
                 sys.exit()
