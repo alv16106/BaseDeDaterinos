@@ -1,0 +1,2 @@
+nani:int
+FOREIGN_KEY:naniREFERENCES:nani

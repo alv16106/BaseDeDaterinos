@@ -36,7 +36,33 @@ class plsListener(ParseTreeListener):
 
 
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
-        os.makedirs(ctx.table_name().getText())
+        if(oie!=" "):
+            os.makedirs(ctx.table_name().getText())
+            f=open(ctx.table_name().getText()+"/"+"schema.txt", "w+")
+            d=open(ctx.table_name().getText()+"/"+"data.txt", "w+")
+            d.close()
+            for x in range(len(ctx.column_def())):
+                f.write(ctx.column_def()[x].column_name().getText())
+                f.write(":"+ctx.column_def()[x].type_name().getText()+"\n")
+            for x in range(len(ctx.table_constraint())):
+                for y in range(len(ctx.table_constraint()[x].column_name())):
+                    print(ctx.table_constraint()[x].column_name()[y].getText())
+                    if ctx.table_constraint()[x].K_PRIMARY()!=None:
+                        print("PRIMARY")
+                        f.write("PRIMARY_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+                    if ctx.table_constraint()[x].K_FOREIGN()!=None:
+                        print("FOREIGN")
+                        f.write("FOREIGN_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+" REFERENCES:"+ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()+"\n")
+                    if ctx.table_constraint()[x].K_UNIQUE()!=None:
+                        print("UNIQUE")
+                        f.write("UNIQUE:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+                    if ctx.table_constraint()[x].K_CHECK()!=None:
+                        print("CHECK")
+                        f.write("CHECK:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+            f.close()
+        else:
+            print("Not in a DATABASE")
+
 
     def exitShow_tables_stmt(self, ctx:sqlParser.Show_tables_stmtContext):
         if bdActual != " ":
