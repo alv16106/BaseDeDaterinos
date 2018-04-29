@@ -36,16 +36,16 @@ class plsListener(ParseTreeListener):
                     print(ctx.table_constraint()[x].column_name()[y].getText())
                     if ctx.table_constraint()[x].K_PRIMARY()!=None:
                         print("PRIMARY")
-                        f.write("PRIMARY_KEY:"+ctx.table_constraint()[x].column_name()[y].getText())
+                        f.write("PRIMARY_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
                     if ctx.table_constraint()[x].K_FOREIGN()!=None:
                         print("FOREIGN")
-                        f.write("FOREIGN_KEY:"+ctx.table_constraint()[x].column_name()[y].getText())
+                        f.write("FOREIGN_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+" REFERENCES:"+ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()+"\n")
                     if ctx.table_constraint()[x].K_UNIQUE()!=None:
                         print("UNIQUE")
-                        f.write("UNIQUE:"+ctx.table_constraint()[x].column_name()[y].getText())
+                        f.write("UNIQUE:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
                     if ctx.table_constraint()[x].K_CHECK()!=None:
                         print("CHECK")
-                        f.write("CHECK:"+ctx.table_constraint()[x].column_name()[y].getText())
+                        f.write("CHECK:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
             f.close()
         else:
             print("Not in a DATABASE")
