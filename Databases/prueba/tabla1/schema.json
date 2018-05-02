@@ -1,0 +1,1 @@
+{"constraints": {}, "nombre": "tabla1", "campos": [{"nombre": "id", "tipo": "int"}, {"nombre": "nombre", "tipo": "char(100)"}, {"nombre": "nota", "tipo": "int"}]}

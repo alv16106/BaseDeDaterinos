@@ -1,0 +1,1 @@
+{"constraints": [{"constraint": "PRIMARY KEY", "columna": "id"}], "campos": [{"tipo": "int", "nombre": "id"}, {"tipo": "char(20)", "nombre": "juegos"}], "nombre": "hoySi"}
