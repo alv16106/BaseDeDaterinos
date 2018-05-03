@@ -16,7 +16,9 @@ class plsListener(ParseTreeListener):
 
     def exitCreate_database_stmt(self, ctx:sqlParser.Create_database_stmtContext):
         os.makedirs("Databases/" + ctx.database_name().getText())
-
+        dict = {'tablas':[]}
+        with open("Databases/"+ ctx.database_name().getText() +"/schema.json", "w+") as outfile:
+            json.dump(dict, outfile)
 
     def exitShow_databases_stmt(self, ctx:sqlParser.Show_databases_stmtContext):
         if bdActual != " ":
@@ -55,6 +57,12 @@ class plsListener(ParseTreeListener):
 
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         if(bdActual!=" "):
+            #Agregar tabla al schema de la base de datos
+            base = json.load(open("schema.json"))
+            base['tablas'].append(ctx.table_name().getText())
+            with open("schema.json", "w+") as outfile:
+                json.dump(base, outfile)
+
             dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[] }
             os.makedirs(ctx.table_name().getText())
             #f=open(ctx.table_name().getText()+"/"+"schema.txt", "w+")
