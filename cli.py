@@ -20,20 +20,25 @@ class plsListener(ParseTreeListener):
 
     #CREATE DATABASE NOMBRE************************************************************************************************************************************************
     def exitCreate_database_stmt(self, ctx:sqlParser.Create_database_stmtContext):
-        verbose("Creando una base de datos ...")
+        verbose("Verificando locacion...")
         if bdActual == " ":
             os.makedirs("Databases/" + ctx.database_name().getText())
             dict = {'tablas':[]}
+            verbose("Creando directorio...")
             with open("Databases/"+ ctx.database_name().getText() +"/schema.json", "w+") as outfile:
                 json.dump(dict, outfile)
+                verbose("Creando schema...")
         else:
             os.makedirs("../" + ctx.database_name().getText())
             dict = {'tablas':[]}
+            verbose("Creando directorio...")
             with open("../"+ ctx.database_name().getText() +"/schema.json", "w+") as outfile:
                 json.dump(dict, outfile)
+                verbose("Creando schema...")
 
     #SHOW DATABASES************************************************************************************************************************************************
     def exitShow_databases_stmt(self, ctx:sqlParser.Show_databases_stmtContext):
+        verbose("Buscando directorios...")
         if bdActual != " ":
             for x in os.walk("../"):
                 print(x[0].replace("../", ""))
@@ -43,16 +48,18 @@ class plsListener(ParseTreeListener):
 
     #SELECT ************************************************************************************************************************************************
     def exitSimple_select_stmt(self, ctx:sqlParser.Simple_select_stmtContext):
+        verbose("ggwp nos vencio el select </3")
         pass
 
     #DROP DATABASE NOMBRE************************************************************************************************************************************************
     def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
         try:
             reg = 0
+            verbose("Cargando esquema de BD...")
             if bdActual != " ":
                 bd = json.load(open("../"+ ctx.database_name().getText() +"/schema.json"))
                 for tabla in bd['tablas']:
-                    print(tabla)
+                    verbose("Contando registros...")
                     tb = json.load(open("../" + ctx.database_name().getText() + "/" + tabla + "/schema.json"))
                     reg += tb['registros']
                     seguro = input(" Esta seguro de que desea eliminar la base de datos " + ctx.database_name().getText() + " que contiene " + str(reg) +"?(Y/n)")
@@ -60,11 +67,12 @@ class plsListener(ParseTreeListener):
                         pass
                     else:
                         return
+                verbose("Eliminando directorio...")
                 shutil.rmtree("../../Databases/"+ctx.database_name().getText())
             else:
                 bd = json.load(open("Databases/"+ ctx.database_name().getText() +"/schema.json"))
                 for tabla in bd['tablas']:
-                    print(tabla)
+                    verbose("Contando registros...")
                     tb = json.load(open("Databases/" + ctx.database_name().getText() + "/" + tabla + "/schema.json"))
                     reg += tb['registros']
                     seguro = input(" Esta seguro de que desea eliminar la base de datos " + ctx.database_name().getText() + " que contiene " + str(reg) +" registro?(Y/n)")
@@ -72,6 +80,7 @@ class plsListener(ParseTreeListener):
                         pass
                     else:
                         return
+                verbose("Eliminando directorio...")
                 shutil.rmtree("Databases/"+ctx.database_name().getText())
         except Exception as e:
             print (bdne)
@@ -80,14 +89,16 @@ class plsListener(ParseTreeListener):
     def exitShow_columns_stmt(self, ctx:sqlParser.Show_columns_stmtContext):
         try:
             if bdActual != " ":
+                verbose("Buscando esquema...")
                 data = json.load(open(ctx.table_name().getText()+"/schema.json"))
+                print("")
+                print("----" + ctx.table_name().getText() + "----")
                 for x in data['campos']:
                     const = ""
                     for y in data ['constraints']:
                         if y['columna'] == x['nombre']:
                             const = const + ", " + y['constraint']
                     print("     *" + x['nombre'] + " de tipo " + x['tipo'] + " " + const)
-                print(ctx.table_name().getText())
             else:
                 print(ingresePls)
         except Exception as e:
@@ -97,6 +108,7 @@ class plsListener(ParseTreeListener):
     #CREATE TABLE Nombre ************************************************************************************************************************************************
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         if(bdActual!=" "):
+            verbose("Generando esquema...")
             dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[], 'registros': 0 }
             data = {}
             for x in range(len(ctx.column_def())):
@@ -136,14 +148,15 @@ class plsListener(ParseTreeListener):
                         #f.write("CHECK:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
                         dict['constraints'].append({'columna':ctx.table_constraint()[x].column_name()[y].getText(), 'constraint':'CHECK'})
             #f.close()
-            print (dict)
+            verbose(dict)
             #Agregar tabla al schema de la base de datos
             base = json.load(open("schema.json"))
+            verbose("Guardando esquema...")
             base['tablas'].append(ctx.table_name().getText())
             with open("schema.json", "w+") as outfile:
                 json.dump(base, outfile)
 
-
+            verbose("Creando directorio...")
             os.makedirs(ctx.table_name().getText())
             #f=open(ctx.table_name().getText()+"/"+"schema.txt", "w+")
 
@@ -158,6 +171,7 @@ class plsListener(ParseTreeListener):
     #SHOW TABLES************************************************************************************************************************************************
     def exitShow_tables_stmt(self, ctx:sqlParser.Show_tables_stmtContext):
         if bdActual != " ":
+            verbose("Buscando directorios...")
             for x in os.walk("."):
                 print(x[0].replace("./", ""))
         else:
@@ -166,12 +180,14 @@ class plsListener(ParseTreeListener):
     #INSERT INTO NombreTB(campo, campo ..) VALUES(Valor, valor ...)************************************************************************************************
     def exitInsert_stmt(self, ctx:sqlParser.Insert_stmtContext):
         if bdActual != " ":
+            verbose("Cargando esquema...")
             data = json.load(open(ctx.table_name().getText() + "/data.json"))
             tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
             try:
                 td = []
                 campos = []
                 camposUsados = []
+                verbose("Cargando campos...")
                 for campo in tabla['campos']:
                     campos.append(campo['nombre'])
                     td.append(campo['tipo'])
@@ -185,6 +201,7 @@ class plsListener(ParseTreeListener):
             else:
                 print("El numero de columnas ingresadas y el de datos ingresados no concuerda")
                 return
+            verbose("Validando data...")
             #recorrer lo que ingreso el usuario
             for x in range(len(ctx.column_name())):
                 if ctx.column_name()[x].getText() in campos:
@@ -194,21 +211,21 @@ class plsListener(ParseTreeListener):
                         try:
                             int(ctx.expr()[x].getText())
                         except Exception as e:
-                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            print (ctx.expr()[x].getText() + " no es un integer valido")
                             return
                     #FLOAT
                     elif tipoDeDato == "float" or tipoDeDato == "FLOAT":
                         try:
                             float(ctx.expr()[x].getText())
                         except Exception as e:
-                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            print (ctx.expr()[x].getText() + " no es un float valido")
                             return
                     #DATE
                     elif tipoDeDato == "date" or tipoDeDato == "DATE":
                         try:
                             datetime.datetime.strptime(ctx.expr()[x].getText(), '%Y-%m-%d')
                         except Exception as e:
-                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            print (ctx.expr()[x].getText() + " no es una fecha valida, estas deben tener el formato %Y-%m-%d")
                             return
                     if tipoDeDato.split("(")[0] == "CHAR" or tipoDeDato.split("(")[0] == "char":
                         if len(ctx.expr()[x].getText())<int(tipoDeDato.split("(")[1].split(")")[0]):
@@ -217,16 +234,19 @@ class plsListener(ParseTreeListener):
                         else:
                             print("Este string es muy largo ")
                             return
+
                     data[ctx.column_name()[x].getText()].append(ctx.expr()[x].getText())
                     camposUsados.append(ctx.column_name()[x].getText())
                 else:
                     print("La columna " + ctx.column_name()[x].getText() + " no existe")
                     return
             for campoNull in (set(campos) - set(camposUsados)):
+                verbose("Completando campo faltante...")
                 data[campoNull].append(None)
         else:
             print (ingresePls)
             return
+        verbose("Guardando cambios...")
         with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
         tabla['registros'] += 1
@@ -237,22 +257,24 @@ class plsListener(ParseTreeListener):
     #UPDATE************************************************************************************************
     def exitUpdate_stmt(self, ctx:sqlParser.Update_stmtContext):
     	if bdActual != " " :
-    		data = json.load(open(ctx.table_name().getText() + "/data.json"))
-    		columnLista = ctx.column_name()
-    		exprList = ctx.expr()
-    		print(exprList[1])
-    		for i in range(len(exprList)):
-    			if(i == len(exprList)-1):
-    				where = exprList[i].getText()
-    				where1 = where.split("=")
-    		valorcito = where1[-1]
-    		valorsote = where1[0]
-    		indexerino = data[valorsote].index(valorcito)
-    		for i in range(len(columnLista)):
-    			data[ctx.column_name()[i].getText()].pop(indexerino)
-    			data[ctx.column_name()[i].getText()].insert(indexerino,ctx.expr()[i].getText())
-    	with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
-            json.dump(data, outfile)
+            verbose("Cargando data...")
+            data = json.load(open(ctx.table_name().getText() + "/data.json"))
+            columnLista = ctx.column_name()
+            exprList = ctx.expr()
+            print(exprList[1])
+            for i in range(len(exprList)):
+                if(i == len(exprList)-1):
+                    where = exprList[i].getText()
+                    where1 = where.split("=")
+            valorcito = where1[-1]
+            valorsote = where1[0]
+            indexerino = data[valorsote].index(valorcito)
+            verbose("Reemplazando...")
+            for i in range(len(columnLista)):
+                data[ctx.column_name()[i].getText()].pop(indexerino)
+                data[ctx.column_name()[i].getText()].insert(indexerino,ctx.expr()[i].getText())
+            with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
+                json.dump(data, outfile)
 
     #ALTER TABLE************************************************************************************************************************************************
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
@@ -340,6 +362,7 @@ class plsListener(ParseTreeListener):
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
         global bdActual
         try:
+            verbose("Buscando directorio...")
             if bdActual == " ":
                 os.rename("Databases/" + ctx.database_name().getText(), "Databases/" + ctx.new_database_name().getText())
             else:
@@ -352,6 +375,7 @@ class plsListener(ParseTreeListener):
     def exitUse_database_stmt(self, ctx:sqlParser.Use_database_stmtContext):
         global bdActual
         try:
+            verbose("Ingresando a directorio...")
             if bdActual == " ":
                 os.chdir("Databases/" + ctx.database_name().getText())
             else:
@@ -364,16 +388,19 @@ class plsListener(ParseTreeListener):
     def exitDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
         if bdActual != " ":
             try:
+                verbose("Cargando esquema...")
                 tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
                 seguro = input(" Esta seguro de que desea eliminar la tabla " + ctx.table_name().getText() + " que contiene " + str(tabla['registros']) +"?(Y/n)")
                 if seguro == "Y" or seguro == "y":
                     pass
                 else:
                     return
+                verbose("Eliminando directorio...")
                 shutil.rmtree(ctx.table_name().getText())
                 base = json.load(open("schema.json"))
                 x = base['tablas'].index(ctx.table_name().getText())
                 del base['tablas'][x]
+                verbose("Guardando cambios...")
                 with open("schema.json", "w+") as outfile:
                     json.dump(base, outfile)
             except Exception as e:
