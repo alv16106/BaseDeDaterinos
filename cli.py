@@ -262,6 +262,7 @@ class plsListener(ParseTreeListener):
                 if (x== ctx.table_name().getText()):
                     #ADD/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
+                        verbose("Revisando si es ADD COLUMN....")
                         ctx.alter_table_specific_stmt().K_ADD()
                         ctx.alter_table_specific_stmt().K_COLUMN()
                         data2 = json.load(open(ctx.table_name().getText()+"/schema.json"))
@@ -276,6 +277,7 @@ class plsListener(ParseTreeListener):
                                 else:
                                     val= True
                         if (val):
+                            verbose("Añadiendo columna....")
                             print ("Add Valid")
                             data2['campos'].append({'nombre':ctx.alter_table_specific_stmt().column_def().column_name().getText(), 'tipo':ctx.alter_table_specific_stmt().column_def().type_name().getText()})
                             with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
@@ -294,6 +296,7 @@ class plsListener(ParseTreeListener):
                         print("No es ADD")
                     #DROP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
+                        verbose("Revisando si es DROP COLUMN.....")
                         ctx.alter_table_specific_stmt().K_DROP()
                         ctx.alter_table_specific_stmt().K_COLUMN()
                         data2 = json.load(open(ctx.table_name().getText()+"/schema.json"))
@@ -306,6 +309,7 @@ class plsListener(ParseTreeListener):
                                 ver= True
                                 break
                         if(ver):
+                            verbose("Botando Columna....")
                             for z in data2['campos']:
                                 if (z['nombre'] == ctx.alter_table_specific_stmt().column_name().getText()):
                                     nombre = z['nombre']
@@ -328,6 +332,7 @@ class plsListener(ParseTreeListener):
                         print("No es un DROP COLUMN")
                     #DROP CONSTRAINT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
+                        verbose("Revisando si es DROP CONSTRAINT")
                         ctx.alter_table_specific_stmt().K_DROP()
                         ctx.alter_table_specific_stmt().K_CONSTRAINT()
                         data2= json.load(open(ctx.table_name().getText()+"/schema.json"))
@@ -340,6 +345,7 @@ class plsListener(ParseTreeListener):
                             else:
                                 ver=False
                         if(ver):
+                            verbose("Quitando Constraints......")
                             i= data2['constraints'].index({'columna':columna, 'constraint':constraint})
                             del data2['constraint'][i] 
                             with open(ctx.table_name().getText()+"schema.json") as outfile:
@@ -354,20 +360,19 @@ class plsListener(ParseTreeListener):
 
                     #RENAME /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
+                        verbose("Revisando si es RENAME TO....")
                         ctx.alter_table_specific_stmt().K_RENAME()
                         ctx.alter_table_specific_stmt().K_TO()
-                        print("nani?")
+                        verbose("Renombrando")
                         i = data['tablas'].index(ctx.table_name().getText())
                         data['tablas'][i]= ctx.alter_table_specific_stmt().new_table_name().getText()
                         with open("schema.json", "w+") as outfile:
                             json.dump(data, outfile)
-                        print("nani?2")
                         data2= json.load(open(ctx.table_name().getText()+"/schema.json"))
                         j= data2['nombre'].index(ctx.table_name().getText())
                         data2['nombre']= ctx.alter_table_specific_stmt().new_table_name().getText()
                         with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
                             json.dump(data2, outfile)
-                        print("nani?3")
                         os.rename(ctx.table_name().getText(),ctx.alter_table_specific_stmt().new_table_name().getText())
                         print("pls help")
                         break
