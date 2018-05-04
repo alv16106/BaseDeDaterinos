@@ -152,12 +152,14 @@ class plsListener(ParseTreeListener):
     		data = json.load(open(ctx.table_name().getText() + "/data.json"))
     		columnLista = ctx.column_name()
     		exprList = ctx.expr()
+    		print(exprList[1])
     		for i in range(len(exprList)):
     			if(i == len(exprList)-1):
     				where = exprList[i].getText()
-    				where1 = list(where)
+    				where1 = where.split("=")
     		valorcito = where1[-1]
-    		indexerino = data['id'].index(valorcito)
+    		valorsote = where1[0]
+    		indexerino = data[valorsote].index(valorcito)
     		for i in range(len(columnLista)):
     			data[ctx.column_name()[i].getText()].pop(indexerino)
     			data[ctx.column_name()[i].getText()].insert(indexerino,ctx.expr()[i].getText())
