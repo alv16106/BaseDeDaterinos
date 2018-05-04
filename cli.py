@@ -11,6 +11,7 @@ from antlr4.error.ErrorListener import ErrorListener
 bdActual = " "
 bdne = "La base de datos que esta tratando de accesar no existe"
 ingresePls = "Ingrese a una base de datos primero"
+tiposValidos = ["INT", "FLOAT", "DATE", "CHAR", "int", "float", "date", "char"]
 
 class plsListener(ParseTreeListener):
 
@@ -57,21 +58,17 @@ class plsListener(ParseTreeListener):
 
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         if(bdActual!=" "):
-            #Agregar tabla al schema de la base de datos
-            base = json.load(open("schema.json"))
-            base['tablas'].append(ctx.table_name().getText())
-            with open("schema.json", "w+") as outfile:
-                json.dump(base, outfile)
-
             dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[] }
-            os.makedirs(ctx.table_name().getText())
-            #f=open(ctx.table_name().getText()+"/"+"schema.txt", "w+")
-            d=open(ctx.table_name().getText()+"/"+"data.txt", "w+")
-            d.close()
+            data = {}
             for x in range(len(ctx.column_def())):
                 #f.write(ctx.column_def()[x].column_name().getText())
                 #f.write(":"+ctx.column_def()[x].type_name().getText()+"\n")
-                dict['campos'].append({'nombre':ctx.column_def()[x].column_name().getText(), 'tipo':ctx.column_def()[x].type_name().getText()})
+                if ctx.column_def()[x].type_name().getText().split("(")[0] in tiposValidos:
+                    dict['campos'].append({'nombre':ctx.column_def()[x].column_name().getText(), 'tipo':ctx.column_def()[x].type_name().getText()})
+                    data[ctx.column_def()[x].column_name().getText()] = []
+                else:
+                    print("El tipo de dato de " + ctx.column_def()[x].column_name().getText() + " no es valido")
+                    return
             for x in range(len(ctx.table_constraint())):
                 for y in range(len(ctx.table_constraint()[x].column_name())):
                     print(ctx.table_constraint()[x].column_name()[y].getText())
@@ -93,6 +90,18 @@ class plsListener(ParseTreeListener):
                         dict['constraints'].append({'columna':ctx.table_constraint()[x].column_name()[y].getText(), 'constraint':'CHECK'})
             #f.close()
             print (dict)
+            #Agregar tabla al schema de la base de datos
+            base = json.load(open("schema.json"))
+            base['tablas'].append(ctx.table_name().getText())
+            with open("schema.json", "w+") as outfile:
+                json.dump(base, outfile)
+
+
+            os.makedirs(ctx.table_name().getText())
+            #f=open(ctx.table_name().getText()+"/"+"schema.txt", "w+")
+
+            with open(ctx.table_name().getText()+"/data.json", "w+") as outfile:
+                json.dump(data, outfile)
             with open(ctx.table_name().getText()+"/"+"schema.json", "w+") as outfile:
                 json.dump(dict, outfile)
         else:
@@ -105,6 +114,37 @@ class plsListener(ParseTreeListener):
                 print(x[0].replace("./", ""))
         else:
             print (ingresePls)
+
+    def exitInsert_stmt(self, ctx:sqlParser.Insert_stmtContext):
+        if bdActual != " ":
+            data = json.load(open(ctx.table_name().getText() + "/data.json"))
+            try:
+                td = []
+                campos = []
+                tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
+                for campo in tabla['campos']:
+                    campos.append(campo['nombre'])
+                    td.append(campo['tipo'])
+            except Exception as e:
+                print(bdne)
+                return
+
+            #metio los argumentos necesarios?
+            if len(ctx.expr()) == len(ctx.column_name()):
+                pass
+            else:
+                print("El numero de columnas ingresadas y el de datos ingresados no concuerda")
+                return
+            #recorrer lo que ingreso el usuario
+            for x in range(len(ctx.column_name())):
+                if ctx.column_name()[x].getText() in campos:
+                    data[ctx.column_name()[x].getText()].append(ctx.expr()[x].getText())
+                else:
+                    print("La columna " + x.getText() + " no existe")
+        else:
+            print (ingresePls)
+        with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
+            json.dump(data, outfile)
 
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
         if bdActual != " ":
@@ -140,6 +180,11 @@ class plsListener(ParseTreeListener):
         if bdActual != " ":
             try:
                 shutil.rmtree(ctx.table_name().getText())
+                base = json.load(open("schema.json"))
+                x = base['tablas'].index(ctx.table_name().getText())
+                del base['tablas'][x]
+                with open("schema.json", "w+") as outfile:
+                    json.dump(base, outfile)
             except Exception as e:
                 print("Esa tabla no existe Xd")
         else:
