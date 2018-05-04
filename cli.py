@@ -131,7 +131,7 @@ class plsListener(ParseTreeListener):
 
             #metio los argumentos necesarios?
             if len(ctx.expr()) == len(ctx.column_name()):
-                pass
+                pass 
             else:
                 print("El numero de columnas ingresadas y el de datos ingresados no concuerda")
                 return
@@ -145,6 +145,27 @@ class plsListener(ParseTreeListener):
             print (ingresePls)
         with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
+
+
+    def exitUpdate_stmt(self, ctx:sqlParser.Update_stmtContext):
+    	if bdActual != " " :
+    		data = json.load(open(ctx.table_name().getText() + "/data.json"))
+    		columnLista = ctx.column_name()
+    		exprList = ctx.expr()
+    		for i in range(len(exprList)):
+    			if(i == len(exprList)-1):
+    				where = exprList[i].getText()
+    				where1 = list(where)
+    		valorcito = where1[-1]
+    		indexerino = data['id'].index(valorcito)
+    		for i in range(len(columnLista)):
+    			data[ctx.column_name()[i].getText()].pop(indexerino)
+    			data[ctx.column_name()[i].getText()].insert(indexerino,ctx.expr()[i].getText())
+    	with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
+            json.dump(data, outfile)
+  
+
+
 
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
         if bdActual != " ":
