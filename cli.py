@@ -4,6 +4,7 @@ import datetime
 import pathlib
 import shutil
 import json
+import argparse
 from antlr4 import *
 from sqlLexer import sqlLexer
 from sqlParser import sqlParser
@@ -13,10 +14,13 @@ bdActual = " "
 bdne = "La base de datos que esta tratando de accesar no existe"
 ingresePls = "Ingrese a una base de datos primero"
 tiposValidos = ["INT", "FLOAT", "DATE", "CHAR", "int", "float", "date", "char"]
+verbose = None
 
 class plsListener(ParseTreeListener):
 
+    #CREATE DATABASE NOMBRE************************************************************************************************************************************************
     def exitCreate_database_stmt(self, ctx:sqlParser.Create_database_stmtContext):
+        verbose("Creando una base de datos ...")
         if bdActual == " ":
             os.makedirs("Databases/" + ctx.database_name().getText())
             dict = {'tablas':[]}
@@ -28,6 +32,7 @@ class plsListener(ParseTreeListener):
             with open("../"+ ctx.database_name().getText() +"/schema.json", "w+") as outfile:
                 json.dump(dict, outfile)
 
+    #SHOW DATABASES************************************************************************************************************************************************
     def exitShow_databases_stmt(self, ctx:sqlParser.Show_databases_stmtContext):
         if bdActual != " ":
             for x in os.walk("../"):
@@ -36,6 +41,11 @@ class plsListener(ParseTreeListener):
             for x in os.walk("Databases/"):
                 print(x[0].replace("Databases/", ""))
 
+    #SELECT ************************************************************************************************************************************************
+    def exitSimple_select_stmt(self, ctx:sqlParser.Simple_select_stmtContext):
+        pass
+
+    #DROP DATABASE NOMBRE************************************************************************************************************************************************
     def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
         try:
             reg = 0
@@ -66,6 +76,7 @@ class plsListener(ParseTreeListener):
         except Exception as e:
             print (bdne)
 
+    #SHOW COLUMNS FROM NombreDB************************************************************************************************************************************************
     def exitShow_columns_stmt(self, ctx:sqlParser.Show_columns_stmtContext):
         try:
             if bdActual != " ":
@@ -83,7 +94,7 @@ class plsListener(ParseTreeListener):
             print (e)
             print (bdne)
 
-
+    #CREATE TABLE Nombre ************************************************************************************************************************************************
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         if(bdActual!=" "):
             dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[], 'registros': 0 }
@@ -144,7 +155,7 @@ class plsListener(ParseTreeListener):
         else:
             print(ingresePls)
 
-
+    #SHOW TABLES************************************************************************************************************************************************
     def exitShow_tables_stmt(self, ctx:sqlParser.Show_tables_stmtContext):
         if bdActual != " ":
             for x in os.walk("."):
@@ -152,6 +163,7 @@ class plsListener(ParseTreeListener):
         else:
             print (ingresePls)
 
+    #INSERT INTO NombreTB(campo, campo ..) VALUES(Valor, valor ...)************************************************************************************************
     def exitInsert_stmt(self, ctx:sqlParser.Insert_stmtContext):
         if bdActual != " ":
             data = json.load(open(ctx.table_name().getText() + "/data.json"))
@@ -222,7 +234,7 @@ class plsListener(ParseTreeListener):
             json.dump(tabla, outfile)
         print("INSERT 1 con exito")
 
-
+    #UPDATE************************************************************************************************
     def exitUpdate_stmt(self, ctx:sqlParser.Update_stmtContext):
     	if bdActual != " " :
     		data = json.load(open(ctx.table_name().getText() + "/data.json"))
@@ -242,9 +254,7 @@ class plsListener(ParseTreeListener):
     	with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
 
-
-
-
+    #ALTER TABLE************************************************************************************************************************************************
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
         if bdActual != " ":
             data= json.load(open("schema.json"))
@@ -322,10 +332,11 @@ class plsListener(ParseTreeListener):
 
                 else:
                     print("halp")
-                    
+
         else:
             print (ingresePls)
 
+    #ALTER DATABASE ************************************************************************************************************************************************
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
         global bdActual
         try:
@@ -337,6 +348,7 @@ class plsListener(ParseTreeListener):
         except Exception as e:
             print (bdne)
 
+    #USE DATABASE Nombre DB*****************************************************************************************
     def exitUse_database_stmt(self, ctx:sqlParser.Use_database_stmtContext):
         global bdActual
         try:
@@ -348,7 +360,7 @@ class plsListener(ParseTreeListener):
         except Exception as e:
             print (bdne)
 
-
+    #DROP TABLE NombreTB ***************************************************************************************
     def exitDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
         if bdActual != " ":
             try:
@@ -405,6 +417,22 @@ Uso: python cli.py
 Las construcciones validas para esta gramatica son todas aquellas
 '''
 def main(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action="count",
+                        help="Vea paso a paso lo que el gestor de bases de datos hace")
+
+    args = parser.parse_args()
+    if args.verbose:
+        print("Activado el modo verbose")
+        def _verbose(*verb_args):
+            for v in verb_args:
+                print(v)
+    else:
+        _verbose = lambda *a: None  # do-nothing function
+
+    global verbose
+    verbose = _verbose
+
     while True:
         try:
             text = input(" " + bdActual + " > ")
