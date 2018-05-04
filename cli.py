@@ -1,5 +1,6 @@
 import sys
 import os
+import datetime
 import pathlib
 import shutil
 import json
@@ -118,10 +119,11 @@ class plsListener(ParseTreeListener):
     def exitInsert_stmt(self, ctx:sqlParser.Insert_stmtContext):
         if bdActual != " ":
             data = json.load(open(ctx.table_name().getText() + "/data.json"))
+            tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
             try:
                 td = []
                 campos = []
-                tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
+                camposUsados = []
                 for campo in tabla['campos']:
                     campos.append(campo['nombre'])
                     td.append(campo['tipo'])
@@ -135,14 +137,49 @@ class plsListener(ParseTreeListener):
             else:
                 print("El numero de columnas ingresadas y el de datos ingresados no concuerda")
                 return
+            print(len(ctx.column_name()))
             #recorrer lo que ingreso el usuario
             for x in range(len(ctx.column_name())):
                 if ctx.column_name()[x].getText() in campos:
+                    tipoDeDato = td[campos.index(ctx.column_name()[x].getText())]
+                    #INT
+                    if tipoDeDato == "int" or tipoDeDato == "INT":
+                        try:
+                            int(ctx.expr()[x].getText())
+                        except Exception as e:
+                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            return
+                    #FLOAT
+                    elif tipoDeDato == "float" or tipoDeDato == "FLOAT":
+                        try:
+                            float(ctx.expr()[x].getText())
+                        except Exception as e:
+                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            return
+                    #DATE
+                    elif tipoDeDato == "date" or tipoDeDato == "DATE":
+                        try:
+                            datetime.datetime.strptime(ctx.expr()[x].getText(), '%Y-%m-%d')
+                        except Exception as e:
+                            print ("El tipo de dato de " + ctx.column_name()[x].getText() + " no concuerda")
+                            return
+                    if tipoDeDato.split("(")[0] == "CHAR" or tipoDeDato.split("(")[0] == "char":
+                        if len(ctx.expr()[x].getText())<int(tipoDeDato.split("(")[1].split(")")[0]):
+                            print(len(ctx.expr()[x].getText()))
+                            print(tipoDeDato.split("(")[1].split(")")[0])
+                        else:
+                            print("Este string es muy largo ")
+                            return
                     data[ctx.column_name()[x].getText()].append(ctx.expr()[x].getText())
+                    camposUsados.append(ctx.column_name()[x].getText())
                 else:
-                    print("La columna " + x.getText() + " no existe")
+                    print("La columna " + ctx.column_name()[x].getText() + " no existe")
+                    return
+            for campoNull in (set(campos) - set(camposUsados)):
+                data[campoNull].append(None)
         else:
             print (ingresePls)
+            return
         with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
 
