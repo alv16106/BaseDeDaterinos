@@ -32,9 +32,30 @@ class plsListener(ParseTreeListener):
 
     def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
         try:
+            reg = 0
             if bdActual != " ":
+                bd = json.load(open("../"+ ctx.database_name().getText() +"/schema.json"))
+                for tabla in bd['tablas']:
+                    print(tabla)
+                    tb = json.load(open("../" + ctx.database_name().getText() + "/" + tabla + "/schema.json"))
+                    reg += tb['registros']
+                    seguro = input(" Esta seguro de que desea eliminar la base de datos " + ctx.database_name().getText() + " que contiene " + str(reg) +"?(Y/n)")
+                    if seguro == "Y" or seguro == "y":
+                        pass
+                    else:
+                        return
                 shutil.rmtree("../../Databases/"+ctx.database_name().getText())
             else:
+                bd = json.load(open("Databases/"+ ctx.database_name().getText() +"/schema.json"))
+                for tabla in bd['tablas']:
+                    print(tabla)
+                    tb = json.load(open("Databases/" + ctx.database_name().getText() + "/" + tabla + "/schema.json"))
+                    reg += tb['registros']
+                    seguro = input(" Esta seguro de que desea eliminar la base de datos " + ctx.database_name().getText() + " que contiene " + str(reg) +" registro?(Y/n)")
+                    if seguro == "Y" or seguro == "y":
+                        pass
+                    else:
+                        return
                 shutil.rmtree("Databases/"+ctx.database_name().getText())
         except Exception as e:
             print (bdne)
@@ -59,7 +80,7 @@ class plsListener(ParseTreeListener):
 
     def exitCreate_table_stmt(self, ctx:sqlParser.Create_table_stmtContext):
         if(bdActual!=" "):
-            dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[] }
+            dict = {'nombre':ctx.table_name().getText(), 'campos':[], 'constraints':[], 'registros': 0 }
             data = {}
             for x in range(len(ctx.column_def())):
                 #f.write(ctx.column_def()[x].column_name().getText())
@@ -105,6 +126,7 @@ class plsListener(ParseTreeListener):
                 json.dump(data, outfile)
             with open(ctx.table_name().getText()+"/"+"schema.json", "w+") as outfile:
                 json.dump(dict, outfile)
+            print("Se ha creado 1 tabla con exito")
         else:
             print(ingresePls)
 
@@ -133,11 +155,10 @@ class plsListener(ParseTreeListener):
 
             #metio los argumentos necesarios?
             if len(ctx.expr()) == len(ctx.column_name()):
-                pass 
+                pass
             else:
                 print("El numero de columnas ingresadas y el de datos ingresados no concuerda")
                 return
-            print(len(ctx.column_name()))
             #recorrer lo que ingreso el usuario
             for x in range(len(ctx.column_name())):
                 if ctx.column_name()[x].getText() in campos:
@@ -182,6 +203,10 @@ class plsListener(ParseTreeListener):
             return
         with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
+        tabla['registros'] += 1
+        with open(ctx.table_name().getText()+"/"+"schema.json", "w+") as outfile:
+            json.dump(tabla, outfile)
+        print("INSERT 1 con exito")
 
 
     def exitUpdate_stmt(self, ctx:sqlParser.Update_stmtContext):
@@ -202,7 +227,7 @@ class plsListener(ParseTreeListener):
     			data[ctx.column_name()[i].getText()].insert(indexerino,ctx.expr()[i].getText())
     	with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
             json.dump(data, outfile)
-  
+
 
 
 
@@ -229,8 +254,7 @@ class plsListener(ParseTreeListener):
             if bdActual == " ":
                 os.chdir("Databases/" + ctx.database_name().getText())
             else:
-                os.chdir(os.path.dirname(os.getcwd()))
-                os.chdir(ctx.database_name().getText())
+                os.chdir("../"+ctx.database_name().getText())
             bdActual = ctx.database_name().getText()
         except Exception as e:
             print (bdne)
@@ -239,6 +263,12 @@ class plsListener(ParseTreeListener):
     def exitDrop_table_stmt(self, ctx:sqlParser.Drop_table_stmtContext):
         if bdActual != " ":
             try:
+                tabla = json.load(open(ctx.table_name().getText() + "/schema.json"))
+                seguro = input(" Esta seguro de que desea eliminar la tabla " + ctx.table_name().getText() + " que contiene " + str(tabla['registros']) +"?(Y/n)")
+                if seguro == "Y" or seguro == "y":
+                    pass
+                else:
+                    return
                 shutil.rmtree(ctx.table_name().getText())
                 base = json.load(open("schema.json"))
                 x = base['tablas'].index(ctx.table_name().getText())
@@ -246,7 +276,7 @@ class plsListener(ParseTreeListener):
                 with open("schema.json", "w+") as outfile:
                     json.dump(base, outfile)
             except Exception as e:
-                print("Esa tabla no existe Xd")
+                print("Esa tabla no existe")
         else:
             print(ingresePls)
 

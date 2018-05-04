@@ -1,1 +1,0 @@
-{"constraints": [{"columna": "id", "constraint": "PRIMARY KEY"}], "nombre": "Prueba", "campos": [{"tipo": "int", "nombre": "id"}, {"tipo": "char(10)", "nombre": "nombre"}, {"tipo": "float", "nombre": "nota"}, {"tipo": "date", "nombre": "muerte"}]}
