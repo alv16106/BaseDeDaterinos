@@ -294,8 +294,11 @@ class plsListener(ParseTreeListener):
                                 val = False
                             else:
                                 if(ctx.alter_table_specific_stmt().column_def().type_name().getText() not in tiposValidos):
-                                    print ("El tipo no es valido")
-                                    val= False
+                                    if (ctx.alter_table_specific_stmt().column_def().type_name().getText().split("(")[0] == "CHAR" or ctx.alter_table_specific_stmt().column_def().type_name().getText().split("(")[0] == "char"):
+                                        val=True
+                                    else:
+                                        print ("El tipo no es valido")
+                                        val= False
                                 else:
                                     val= True
                         if (val):
@@ -396,15 +399,13 @@ class plsListener(ParseTreeListener):
                         with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
                             json.dump(data2, outfile)
                         os.rename(ctx.table_name().getText(),ctx.alter_table_specific_stmt().new_table_name().getText())
-                        print("pls help")
+                        #print("pls help")
                         break
                     except Exception as e:
-                        print(e)
+                        #print(e)
                         print("No es RENAME")
-
-
                 else:
-                    print("halp")
+                    print("")
 
         else:
             print (ingresePls)
