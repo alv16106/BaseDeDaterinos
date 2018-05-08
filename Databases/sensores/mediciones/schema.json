@@ -1,0 +1,1 @@
+{"constraints": [], "nombre": "mediciones", "registros": 0, "campos": [{"nombre": "id", "tipo": "int"}, {"nombre": "fecha", "tipo": "date"}, {"nombre": "id_estacion", "tipo": "int"}, {"nombre": "id_encargado", "tipo": "int"}, {"nombre": "id_sensor", "tipo": "int"}]}

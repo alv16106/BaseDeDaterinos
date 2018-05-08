@@ -1,0 +1,1 @@
+{"constraints": [], "nombre": "estaciones", "registros": 0, "campos": [{"nombre": "id", "tipo": "int"}, {"nombre": "nombre", "tipo": "char(100)"}, {"nombre": "location", "tipo": "char(100)"}, {"nombre": "latitud", "tipo": "float"}, {"nombre": "longitud", "tipo": "float"}]}

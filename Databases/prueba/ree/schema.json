@@ -1,0 +1,1 @@
+{"campos": [{"tipo": "int", "nombre": "id"}, {"tipo": "char(20)", "nombre": "nombre"}], "nombre": "ree", "registros": 3, "constraints": [{"columna": "id", "constraint": "PRIMARY KEY"}]}

@@ -1,0 +1,1 @@
+{"nombre": "encargados", "campos": [{"nombre": "id", "tipo": "int"}, {"nombre": "nombre", "tipo": "char(30)"}, {"nombre": "apellido", "tipo": "char(40)"}, {"nombre": "puesto", "tipo": "char(50)"}, {"nombre": "edad", "tipo": "int"}, {"nombre": "ingreso", "tipo": "int"}, {"nombre": "dpi", "tipo": "INT"}], "registros": 1, "constraints": []}

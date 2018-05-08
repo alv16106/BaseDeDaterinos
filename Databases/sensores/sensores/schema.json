@@ -1,0 +1,1 @@
+{"constraints": [], "nombre": "sensores", "registros": 3, "campos": [{"nombre": "id", "tipo": "int"}, {"nombre": "nombre", "tipo": "char(100)"}, {"nombre": "uso", "tipo": "char(100)"}, {"nombre": "modelo", "tipo": "int"}, {"nombre": "cantidad", "tipo": "int"}, {"nombre": "error", "tipo": "float"}]}

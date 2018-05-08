@@ -48,8 +48,10 @@ class plsListener(ParseTreeListener):
 
     #SELECT ************************************************************************************************************************************************
     def exitSimple_select_stmt(self, ctx:sqlParser.Simple_select_stmtContext):
-        verbose("ggwp nos vencio el select </3")
-        pass
+        if bdActual != " ":
+            pass
+        else:
+            print(ingresePls)
 
     #DROP DATABASE NOMBRE************************************************************************************************************************************************
     def exitDrop_database_stmt(self, ctx:sqlParser.Drop_database_stmtContext):
@@ -135,7 +137,6 @@ class plsListener(ParseTreeListener):
                             for tbl in data['tablas']:
                                 #print (y)
                                 if (tbl==ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()):
-                                    print("yas?")
                                     dict['constraints'].append({'columna':ctx.table_constraint()[x].column_name()[y].getText(), 'constraint':'REFERENCES'+ ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()})
                                 else:
                                     print(tbl)
@@ -205,6 +206,15 @@ class plsListener(ParseTreeListener):
             #recorrer lo que ingreso el usuario
             for x in range(len(ctx.column_name())):
                 if ctx.column_name()[x].getText() in campos:
+                    #TODO: Unique y PRIMARY
+                    constX = []
+                    for s in tabla['constraints']:
+                        if s['columna'] == ctx.column_name()[x].getText():
+                            constX.append(s['constraint'])
+                    if 'PRIMARY KEY' in constX or 'UNIQUE' in constX:
+                        if ctx.expr()[x].getText() in data[ctx.column_name()[x].getText()]:
+                            print("Esta intentando ingresar un duplicado para un argumento declarado como llave primaria o 'UNIQUE'")
+                            return
                     tipoDeDato = td[campos.index(ctx.column_name()[x].getText())]
                     #INT
                     if tipoDeDato == "int" or tipoDeDato == "INT":
@@ -240,7 +250,15 @@ class plsListener(ParseTreeListener):
                 else:
                     print("La columna " + ctx.column_name()[x].getText() + " no existe")
                     return
+
             for campoNull in (set(campos) - set(camposUsados)):
+                ccn = []
+                for s in tabla['constraints']:
+                    if s['columna'] == campoNull:
+                        ccn.append(s['constraint'])
+                if 'PRIMARY KEY' in ccn or 'UNIQUE' in ccn:
+                    print("El campo "+ campoNull + " es necesario")
+                    return
                 verbose("Completando campo faltante...")
                 data[campoNull].append(None)
         else:
@@ -369,7 +387,7 @@ class plsListener(ParseTreeListener):
                         if(ver):
                             verbose("Quitando Constraints......")
                             i= data2['constraints'].index({'columna':columna, 'constraint':constraint})
-                            del data2['constraint'][i] 
+                            del data2['constraint'][i]
                             with open(ctx.table_name().getText()+"schema.json") as outfile:
                                 json.dump(data2, outfile)
                             break

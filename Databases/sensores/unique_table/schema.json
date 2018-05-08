@@ -1,0 +1,1 @@
+{"nombre": "unique_table", "campos": [{"nombre": "id", "tipo": "INT"}, {"nombre": "nombre", "tipo": "CHAR(10)"}], "registros": 0, "constraints": [{"constraint": "PRIMARY KEY", "columna": "id"}, {"constraint": "UNIQUE", "columna": "nombre"}]}

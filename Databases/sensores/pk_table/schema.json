@@ -1,0 +1,1 @@
+{"nombre": "pk_table", "campos": [{"nombre": "id", "tipo": "INT"}], "registros": 2, "constraints": [{"constraint": "PRIMARY KEY", "columna": "id"}]}
