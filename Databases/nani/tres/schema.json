@@ -1,0 +1,1 @@
+{"nombre": "tres", "campos": [{"nombre": "tres", "tipo": "FLOAT"}], "constraints": [{"columna": "tres", "constraint": "REFERENCESdos"}, {"columna": "tres", "constraint": "REFERENCESdos"}], "registros": 0}
