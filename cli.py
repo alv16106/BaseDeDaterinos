@@ -295,6 +295,28 @@ class plsListener(ParseTreeListener):
             with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
                 json.dump(data, outfile)
 
+    #DELETE************************************************************************************************
+     def exitDelete_stmt(self, ctx:sqlParser.Delete_stmtContext):
+        if bdActual != " ":
+            verbose("Cargando data...")
+            data = json.load(open(ctx.table_name().getText() + "/data.json"))
+            nombreTabla = ctx.table_name()
+            exprList = ctx.expr().getText().split("=")
+            lmao = exprList[0]
+            lmao2 = exprList[-1]
+            lmao3 = data[lmao].index(lmao2)
+            lmao4 = list(data)
+            verbose("Eliminando data...")
+            for i in range(len(lmao4)):
+                lmao5 = lmao4[i]
+                data[lmao5].pop(lmao3)
+        else:
+            print(ingresePls)
+            return
+        verbose("Guardando Cambios...")
+        with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
+            json.dump(data,outfile)
+
     #ALTER TABLE************************************************************************************************************************************************
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
         if bdActual != " ":
