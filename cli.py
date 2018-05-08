@@ -135,7 +135,7 @@ class plsListener(ParseTreeListener):
                             for tbl in data['tablas']:
                                 #print (y)
                                 if (tbl==ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()):
-                                    print("yas?")
+                                    #print("yas?")
                                     dict['constraints'].append({'columna':ctx.table_constraint()[x].column_name()[y].getText(), 'constraint':'REFERENCES'+ ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()})
                                 else:
                                     print(tbl)
@@ -318,7 +318,8 @@ class plsListener(ParseTreeListener):
                             print("Add not valid")
                     except Exception as e:
                         #print(e)
-                        print("No es ADD")
+                        #print("No es ADD")
+                        print()
                     #DROP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
                         verbose("Revisando si es DROP COLUMN.....")
@@ -354,7 +355,8 @@ class plsListener(ParseTreeListener):
                     except Exception as e:
                         #print (e)
                         #print("halp")
-                        print("No es un DROP COLUMN")
+                        #print("No es un DROP COLUMN")
+                        print()
                     #DROP CONSTRAINT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
                         verbose("Revisando si es DROP CONSTRAINT")
@@ -381,7 +383,8 @@ class plsListener(ParseTreeListener):
                         break
                     except Exception as e:
                         #print(e);
-                        print("no es DROP CONSTRAINT")
+                        #print("no es DROP CONSTRAINT")
+                        print()
 
                     #RENAME /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     try:
@@ -403,12 +406,64 @@ class plsListener(ParseTreeListener):
                         break
                     except Exception as e:
                         #print(e)
-                        print("No es RENAME")
-                else:
-                    print("")
-
-        else:
-            print (ingresePls)
+                        #print("No es RENAME")
+                        print()
+                    #ADD CONSTRAINT ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    try: 
+                        verbose("Revisando si es un ADD CONSTRAINT")
+                        ctx.alter_table_specific_stmt().K_ADD()
+                        ctx.alter_table_specific_stmt().table_constraint().K_CONSTRAINT()
+                        data2 = json.load(open(ctx.table_name().getText()+"/schema.json"))
+                        for x in data2['campos']:
+                            print(x['nombre']+"\n"+ ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText())
+                            if (x['nombre']== ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText()):
+                                ver = True
+                                break
+                            else:
+                                ver= False
+                                print("no existe el campo")
+                        if (ver):
+                            print("ADD CONSTRAINT Valid")
+                            if ctx.alter_table_specific_stmt().table_constraint().K_PRIMARY()!=None:
+                                print("PRIMARY")
+                                #f.write("PRIMARY_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+                                data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'PRIMARY KEY'})
+                                with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
+                                    json.dump(data2, outfile)
+                            if ctx.alter_table_specific_stmt().table_constraint().K_FOREIGN()!=None:
+                                #print("FOREIGN")
+                                #f.write("FOREIGN_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+" REFERENCES:"+ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()+"\n")
+                                if(ctx.alter_table_specific_stmt().foreign_key_clause().K_REFERENCES()!=None and len(ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText().replace(" ",""))!=0):
+                                    data= json.load(open("schema.json"))
+                                    for tbl in data['tablas']:
+                                        #print (y)
+                                        if (tbl==ctx.table_constraint().foreign_key_clause().foreign_table().getText()):
+                                            print("yas?")
+                                            data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'REFERENCES'+ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText()})
+                                            with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
+                                                json.dump(data2, outfile)
+                                        else:
+                                            print(tbl)
+                            if ctx.alter_table_specific_stmt().table_constraint().K_UNIQUE()!=None:
+                                print("UNIQUE")
+                                #f.write("UNIQUE:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+                                #dict['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[y].getText(), 'constraint':'UNIQUE'})
+                                data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'UNIQUE'})
+                                with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
+                                    json.dump(data2, outfile)
+                            if ctx.alter_table_specific_stmt().table_constraint().K_CHECK()!=None:
+                                print("CHECK")
+                                #f.write("CHECK:"+ctx.table_constraint()[x].column_name()[y].getText()+"\n")
+                                #dict['constraints'].append({'columna':ctx.table_constraint()[x].column_name()[y].getText(), 'constraint':'CHECK'})
+                                data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'CHECK'})
+                                with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
+                                    json.dump(data2, outfile)
+                            break
+                        else:
+                            print ("No valido")
+                    except Exception as e:
+                        #print(e)
+                        print()
 
     #ALTER DATABASE ************************************************************************************************************************************************
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
