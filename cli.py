@@ -41,15 +41,89 @@ class plsListener(ParseTreeListener):
         verbose("Buscando directorios...")
         if bdActual != " ":
             for x in os.walk("../"):
-                print(x[0].replace("../", ""))
+                if len(x[0].split("/")) == 2:
+                    print(x[0].replace("../", ""))
         else:
             for x in os.walk("Databases/"):
-                print(x[0].replace("Databases/", ""))
+                if len(x[0].split("/")) == 2:
+                    print(x[0].replace("Databases/", ""))
 
     #SELECT ************************************************************************************************************************************************
-    def exitSimple_select_stmt(self, ctx:sqlParser.Simple_select_stmtContext):
+    def exitFactored_select_stmt(self, ctx:sqlParser.Factored_select_stmtContext):
         if bdActual != " ":
-            pass
+            campos = []
+            try:
+                tabla = json.load(open(ctx.select_core()[0].table_or_subquery()[0].getText() + "/schema.json"))
+                for campo in tabla['campos']:
+                    campos.append(campo['nombre'])
+                data = json.load(open(ctx.select_core()[0].table_or_subquery()[0].getText() + "/data.json"))
+            except Exception as e:
+                print("La tabla que esta tratando de accesar no existe")
+                return
+            #Que voy a mostrar?
+            print (ctx.select_core()[0].result_column()[0].getText())
+            res = []
+            try:
+                atributos = ctx.select_core()[0].expr()[0].expr()[0].getText()
+                condiciones = ctx.select_core()[0].expr()[0].expr()[1].getText()
+                verbose("Buscando: " + atributos + " comparando con: " + condiciones)
+                pre = data[atributos]
+                verbose("Evaluando...")
+                if "=" in ctx.select_core()[0].expr()[0].getText():
+                    print("igualdad")
+                    for x in pre:
+                        if x == condiciones:
+                            res = [index for index in range(len(pre)) if pre[index] == x]
+                elif ">" in ctx.select_core()[0].expr()[0].getText():
+                    try:
+                        float(pre[0])
+                        condicion = float(condiciones)
+                    except Exception as e:
+                        print("El operador > solo puede ser utilizado en numeros")
+                    for x in pre:
+                        if float(x) > condicion:
+                            if pre.index(x) not in res:
+                                res = res + [index for index in range(len(pre)) if pre[index] == x]
+                elif "<" in ctx.select_core()[0].expr()[0].getText():
+                    try:
+                        float(pre[0])
+                        condicion = float(condiciones)
+                    except Exception as e:
+                        print("El operador < solo puede ser utilizado en numeros")
+                    for x in pre:
+                        if float(x) < condicion:
+                            if pre.index(x) not in res:
+                                res = res + [index for index in range(len(pre)) if pre[index] == x]
+                elif "!=" in ctx.select_core()[0].expr()[0].getText():
+                    for x in pre:
+                        if x != condiciones:
+                            if pre.index(x) not in res:
+                                res = res + [index for index in range(len(pre)) if pre[index] == x]
+
+            except Exception as e:
+                print(e)
+                for j in range(0, len(data[campos[0]])):
+                    res.append(j)
+
+            for indice in res:
+                fila = ""
+                queIncluye = ctx.select_core()[0].result_column()
+                if ctx.select_core()[0].result_column()[0].getText() == "*":
+                    for c in campos:
+                        if data[c][indice] == None:
+                            fila = fila + " null"
+                        else:
+                            fila = fila + " " + data[c][indice]
+                    print(fila)
+                else:
+                    for c in queIncluye:
+                        if data[c.getText()][indice] == None:
+                            fila = fila + " null"
+                        else:
+                            fila = fila + " " + data[c.getText()][indice]
+                    print(fila)
+
+            print("Se han encontrado " + str(len(res)) + " resultados")
         else:
             print(ingresePls)
 
@@ -175,7 +249,8 @@ class plsListener(ParseTreeListener):
         if bdActual != " ":
             verbose("Buscando directorios...")
             for x in os.walk("."):
-                print(x[0].replace("./", ""))
+                if x[0].replace("./", "") != ".":
+                    print(x[0].replace("./", ""))
         else:
             print (ingresePls)
 
@@ -428,7 +503,7 @@ class plsListener(ParseTreeListener):
                         #print("No es RENAME")
                         print()
                     #ADD CONSTRAINT ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    try: 
+                    try:
                         verbose("Revisando si es un ADD CONSTRAINT")
                         ctx.alter_table_specific_stmt().K_ADD()
                         ctx.alter_table_specific_stmt().table_constraint().K_CONSTRAINT()
@@ -591,6 +666,7 @@ def main(argv):
             text = input(" " + bdActual + " > ")
 
             if (text == 'exit'):
+                print("Adios! Considere hacer una donacion de puntos")
                 sys.exit()
 
             parse(text);
