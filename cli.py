@@ -371,7 +371,7 @@ class plsListener(ParseTreeListener):
                 json.dump(data, outfile)
 
     #DELETE************************************************************************************************
-     def exitDelete_stmt(self, ctx:sqlParser.Delete_stmtContext):
+    def exitDelete_stmt(self, ctx:sqlParser.Delete_stmtContext):
         if bdActual != " ":
             verbose("Cargando data...")
             data = json.load(open(ctx.table_name().getText() + "/data.json"))
