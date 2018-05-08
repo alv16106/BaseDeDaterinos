@@ -370,6 +370,28 @@ class plsListener(ParseTreeListener):
             with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
                 json.dump(data, outfile)
 
+    #DELETE************************************************************************************************
+     def exitDelete_stmt(self, ctx:sqlParser.Delete_stmtContext):
+        if bdActual != " ":
+            verbose("Cargando data...")
+            data = json.load(open(ctx.table_name().getText() + "/data.json"))
+            nombreTabla = ctx.table_name()
+            exprList = ctx.expr().getText().split("=")
+            lmao = exprList[0]
+            lmao2 = exprList[-1]
+            lmao3 = data[lmao].index(lmao2)
+            lmao4 = list(data)
+            verbose("Eliminando data...")
+            for i in range(len(lmao4)):
+                lmao5 = lmao4[i]
+                data[lmao5].pop(lmao3)
+        else:
+            print(ingresePls)
+            return
+        verbose("Guardando Cambios...")
+        with open(ctx.table_name().getText()+"/"+"data.json", "w+") as outfile:
+            json.dump(data,outfile)
+
     #ALTER TABLE************************************************************************************************************************************************
     def exitAlter_table_stmt(self, ctx:sqlParser.Alter_table_stmtContext):
         if bdActual != " ":
@@ -509,7 +531,7 @@ class plsListener(ParseTreeListener):
                         ctx.alter_table_specific_stmt().table_constraint().K_CONSTRAINT()
                         data2 = json.load(open(ctx.table_name().getText()+"/schema.json"))
                         for x in data2['campos']:
-                            print(x['nombre']+"\n"+ ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText())
+                            #print(x['nombre']+"\n"+ ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText())
                             if (x['nombre']== ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText()):
                                 ver = True
                                 break
@@ -517,6 +539,7 @@ class plsListener(ParseTreeListener):
                                 ver= False
                                 print("no existe el campo")
                         if (ver):
+                            verbose("Añadiendo constraint al schema")
                             print("ADD CONSTRAINT Valid")
                             if ctx.alter_table_specific_stmt().table_constraint().K_PRIMARY()!=None:
                                 print("PRIMARY")
@@ -525,14 +548,14 @@ class plsListener(ParseTreeListener):
                                 with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
                                     json.dump(data2, outfile)
                             if ctx.alter_table_specific_stmt().table_constraint().K_FOREIGN()!=None:
-                                #print("FOREIGN")
+                                print("FOREIGN")
                                 #f.write("FOREIGN_KEY:"+ctx.table_constraint()[x].column_name()[y].getText()+" REFERENCES:"+ctx.table_constraint()[x].foreign_key_clause().foreign_table().getText()+"\n")
-                                if(ctx.alter_table_specific_stmt().foreign_key_clause().K_REFERENCES()!=None and len(ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText().replace(" ",""))!=0):
-                                    data= json.load(open("schema.json"))
-                                    for tbl in data['tablas']:
+                                if(ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().K_REFERENCES()!=None and len(ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText().replace(" ",""))!=0):
+                                    data3= json.load(open("schema.json"))
+                                    for tbl in data3['tablas']:
                                         #print (y)
-                                        if (tbl==ctx.table_constraint().foreign_key_clause().foreign_table().getText()):
-                                            print("yas?")
+                                        if (tbl==ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText()):
+                                            #print("yas?")
                                             data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'REFERENCES'+ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText()})
                                             with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
                                                 json.dump(data2, outfile)
@@ -558,6 +581,8 @@ class plsListener(ParseTreeListener):
                     except Exception as e:
                         #print(e)
                         print()
+                else:
+                    print("tabla no existe")
 
     #ALTER DATABASE ************************************************************************************************************************************************
     def exitAlter_database_stmt(self, ctx:sqlParser.Alter_database_stmtContext):
