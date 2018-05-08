@@ -434,7 +434,7 @@ class plsListener(ParseTreeListener):
                         ctx.alter_table_specific_stmt().table_constraint().K_CONSTRAINT()
                         data2 = json.load(open(ctx.table_name().getText()+"/schema.json"))
                         for x in data2['campos']:
-                            print(x['nombre']+"\n"+ ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText())
+                            #print(x['nombre']+"\n"+ ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText())
                             if (x['nombre']== ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText()):
                                 ver = True
                                 break
@@ -442,6 +442,7 @@ class plsListener(ParseTreeListener):
                                 ver= False
                                 print("no existe el campo")
                         if (ver):
+                            verbose("Añadiendo constraint al schema")
                             print("ADD CONSTRAINT Valid")
                             if ctx.alter_table_specific_stmt().table_constraint().K_PRIMARY()!=None:
                                 print("PRIMARY")
@@ -457,7 +458,7 @@ class plsListener(ParseTreeListener):
                                     for tbl in data3['tablas']:
                                         #print (y)
                                         if (tbl==ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText()):
-                                            print("yas?")
+                                            #print("yas?")
                                             data2['constraints'].append({'columna':ctx.alter_table_specific_stmt().table_constraint().column_name()[0].getText(), 'constraint':'REFERENCES'+ctx.alter_table_specific_stmt().table_constraint().foreign_key_clause().foreign_table().getText()})
                                             with open(ctx.table_name().getText()+"/schema.json", "w+") as outfile:
                                                 json.dump(data2, outfile)
