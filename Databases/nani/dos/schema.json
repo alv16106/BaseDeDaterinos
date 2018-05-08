@@ -1,0 +1,1 @@
+{"nombre": "dos", "campos": [{"nombre": "dos", "tipo": "INT"}], "constraints": [{"columna": "dos", "constraint": "PRIMARY KEY"}], "registros": 0}
